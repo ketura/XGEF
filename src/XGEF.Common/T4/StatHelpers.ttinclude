@@ -1,0 +1,78 @@
+﻿<#/*
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+////                                                                               ////
+////    Copyright 2017 Christian 'ketura' McCarty                                  ////
+////                                                                               ////
+////    Licensed under the Apache License, Version 2.0 (the "License");            ////
+////    you may not use this file except in compliance with the License.           ////
+////    You may obtain a copy of the License at                                    ////
+////                                                                               ////
+////                http://www.apache.org/licenses/LICENSE-2.0                     ////
+////                                                                               ////
+////    Unless required by applicable law or agreed to in writing, software        ////
+////    distributed under the License is distributed on an "AS IS" BASIS,          ////
+////    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.   ////
+////    See the License for the specific language governing permissions and        ////
+////    limitations under the License.                                             ////
+////                                                                               ////
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+*/#>
+<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="Manager.ttinclude"#>
+<# var T4Manager = Manager.Create(Host, GenerationEnvironment); #>
+<#
+
+Dictionary<string, TypeInfo> types = new Dictionary<string, TypeInfo>()
+{
+
+["DecimalStat"] = new TypeInfo() { Type = typeof(decimal), TypeName = "Decimal", Name = "DecimalStat", Signed = true, Decimal = true, BitCount = 128 },
+["DoubleStat"] = new TypeInfo() { Type = typeof(double), TypeName = "Double", Name = "DoubleStat", Signed = true, Decimal = true, BitCount = 64 },
+["FloatStat"] = new TypeInfo() { Type = typeof(Single), TypeName = "Single", Name = "FloatStat", Signed = true, Decimal = true, BitCount = 32 },
+["ByteStat"] = new TypeInfo() { Type = typeof(byte), TypeName = "Byte", Name = "ByteStat", Signed = false, Decimal = false, BitCount = 8 },
+["SByteStat"] = new TypeInfo() { Type = typeof(sbyte), TypeName = "SByte", Name = "SByteStat", Signed = true, Decimal = false, BitCount = 8 },
+["ShortStat"] = new TypeInfo() { Type = typeof(Int16), TypeName = "Int16", Name = "ShortStat", Signed = true, Decimal = false, BitCount = 16 },
+["UShortStat"] = new TypeInfo() { Type = typeof(UInt16), TypeName = "UInt16", Name = "UShortStat", Signed = false, Decimal = false, BitCount = 16 },
+["IntStat"] = new TypeInfo() { Type = typeof(Int32), TypeName = "Int32", Name = "IntStat", Signed = true, Decimal = false, BitCount = 32 },
+["UIntStat"] = new TypeInfo() { Type = typeof(UInt32), TypeName = "UInt32", Name = "UIntStat", Signed = false, Decimal = false, BitCount = 32 },
+["LongStat"] = new TypeInfo() { Type = typeof(Int64), TypeName = "Int64", Name = "LongStat", Signed = true, Decimal = false, BitCount = 64 },
+["ULongStat"] = new TypeInfo() { Type = typeof(UInt64), TypeName = "UInt64", Name = "ULongStat", Signed = false, Decimal = false, BitCount = 64 }
+
+};
+
+Dictionary<string, OperatorInfo> operators = new Dictionary<string,  OperatorInfo>()
+{
+	["Add"] = new OperatorInfo() { Operator = "+" , LHS = "0",  RHS = "50", Answer = "50" },
+	["Subtract"] = new OperatorInfo() { Operator = "-", LHS = "100", RHS = "50", Answer = "50" },
+	["Multiply"] = new OperatorInfo() { Operator = "*", LHS = "10", RHS = "5", Answer = "50" },
+	["Divide"] = new OperatorInfo() { Operator = "/", LHS = "50", RHS = "10", Answer = "5" },
+	["Modulo"] = new OperatorInfo() { Operator = "%", LHS = "50", RHS = "10", Answer = "0" },
+	["Pow"] = new OperatorInfo() { Operator = "^", LHS = "10", RHS = "2", Answer = "100" }
+};
+
+
+#>
+<#+
+public struct TypeInfo
+{
+	public Type Type { get; set; }
+	public string Name { get; set; }
+	public string TypeName { get; set; }
+	public bool Signed { get; set; }
+	public bool Decimal { get; set; }
+	public int BitCount { get; set; }
+}
+
+public struct OperatorInfo
+{
+	public string Operator { get; set; }
+	public string LHS { get; set; }
+	public string RHS { get; set; }
+	public string Answer { get; set; }
+}
+#>
