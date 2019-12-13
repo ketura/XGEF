@@ -77,7 +77,7 @@ namespace XGEF
 		//mostly taken from https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-iterate-through-a-directory-tree
 		protected void WalkDirectoryTree(DirectoryInfo root)
 		{
-			FileInfo[] files = null;
+			FileInfo[] files;
 
 			try
 			{

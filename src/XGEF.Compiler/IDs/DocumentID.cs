@@ -81,7 +81,7 @@ namespace XGEF.Compiler
 		}
 
 		public DocumentID() : base() { }
-		public DocumentID(ProjectID pid, Guid guid=default(Guid), string debugName=null) 
+		public DocumentID(ProjectID pid, Guid guid=default, string debugName=null) 
 			: base(guid, debugName)
 		{
 			ProjectID = pid;

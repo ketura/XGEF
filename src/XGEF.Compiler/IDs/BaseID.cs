@@ -74,7 +74,7 @@ namespace XGEF.Compiler
 
 		protected BaseID(Guid guid, string debugName=null)
 		{
-			if (guid == Guid.Empty || guid == default(Guid))
+			if (guid == Guid.Empty || guid == default)
 			{
 				guid = Guid.NewGuid();
 			}

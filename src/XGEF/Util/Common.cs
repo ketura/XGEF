@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace XGEF
 {
-	public class Constants
+	public static class Constants
 	{
 		public static readonly string CoreModName = "CoreMod";
 		public static readonly string SettingsLocation = "XGEF_Settings.json";

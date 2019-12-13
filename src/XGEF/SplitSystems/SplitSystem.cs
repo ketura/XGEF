@@ -28,7 +28,7 @@ namespace XGEF
 {
 	public interface ISplitSystem
 	{
-		string Name { get; }
+		string Name { get; } 
 
 		void LoadSettings(XGEFSettings settings);
 
@@ -44,10 +44,7 @@ namespace XGEF
 		SystemManager Manager { get; set; }
 	}
 
-	public interface IModSystem : ISplitSystem
-	{
-
-	}
+	
 
 	//The primary means through which a game is defined.
 	public abstract class SplitSystem : ISplitSystem
@@ -63,11 +60,11 @@ namespace XGEF
 		public virtual void PostProcess() { }
 
 		public bool Initialized { get; protected set; }
-		public string Name { get; protected set; }
+		public string Name { get; protected set; } 
 		public SystemManager Manager { get; set; }
 		//public virtual IEnumerable<EntityDefinition> EntityDefinitions { get; protected set; }
 
-		public SplitSystem() : base()
+		protected SplitSystem() : base()
 		{
 			Name = this.GetType().Name;
 			//EntityDefinitions = new List<EntityDefinition>();
@@ -78,38 +75,4 @@ namespace XGEF
 			return Name;
 		}
 	}
-
-	
-
-
-
-		//public Dictionary<string, IEvent> Events { get; protected set; }
-
-
-		//public virtual void RegisterForEvent(string eventName, Priority priority, Delegate callback) { }
-
-		//public virtual void UnregisterForEvent(string eventName, Delegate callback) { }
-
-		//public ModdableSystem()
-		//{
-		//	//Events = new Dictionary<string, IEvent>();
-		//}
-
-		//public void AddEvent(string name, EventArgs args, Type argsType = null)
-		//{
-		//	if (Events.ContainsKey(name))
-		//		return;
-		//}
-
-	//GeneratesEvent
-	//AppendEvent
-	//PrependEvent
-	//OverrideClass
-	//OverrideFunction
-	//AppendFunction
-	//PrependFunction
-	//DeleteFunction
-
-	//Don't Serialize attribute
-	//naked code with no class wrapped in a class named after the file path?
 }

@@ -21,18 +21,64 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Runtime.CompilerServices;
 using XGEF.Common.Logging;
 
 
 namespace XGEF
 {
-	public partial class SystemManager
+	public class SystemManager
 	{
+
+
+		public string Name => "SystemManager";
+
 		public Dictionary<string, SplitSystem> Systems { get; protected set; }
 		public Dictionary<string, Utility> Utilities { get; protected set; }
 		public List<ILogger> Loggers { get; protected set; }
-		public bool LogActive { get; set; } = true;
+
+		private bool _logActive = true;
+		private bool _logDebugInfo = false;
+		private LogLevel _logOutputLevel = LogLevel.Warn;
+
+		public bool LogActive
+		{
+			get => _logActive;
+			protected set
+			{
+				_logActive = value;
+				foreach (var logger in Loggers)
+				{
+					logger.LogActive = _logActive;
+				}
+			}
+		}
+		public bool LogDebugInfo
+		{
+			get => _logDebugInfo;
+			protected set
+			{
+				_logDebugInfo = value;
+				foreach (var logger in Loggers)
+				{
+					logger.LogDebugInfo = _logDebugInfo;
+				}
+			}
+		}
+
+		public LogLevel LogOutputLevel
+		{
+			get => _logOutputLevel;
+			protected set
+			{
+				_logOutputLevel = value;
+				foreach (var logger in Loggers)
+				{
+					logger.LogOutputLevel = _logOutputLevel;
+				}
+			}
+		}
+
 
 		public XGEFSettings Settings { get; protected set; }
 
@@ -46,11 +92,11 @@ namespace XGEF
 
 		private static SystemManager LoadBasicSystems()
 		{
-			if(Instance == null)
+			if (Instance == null)
 			{
 				Instance = XGEF.Preloader.LoadDefaultWithTypes();
 			}
-			
+
 			//Instance.RegisterSystem(new CoreActionSystem());
 			return Instance;
 		}
@@ -63,7 +109,8 @@ namespace XGEF
 			Loggers = new List<ILogger>();
 
 			Settings = XGEFSettings.ConsolidateFromFile(Constants.SettingsLocation);
-			SetLogLevel(Settings.LogOutput);
+			LogOutputLevel = Settings.LogOutput;
+			LogDebugInfo = Settings.LogMethodTrace;
 		}
 
 		public ISplitSystem this[string name]
@@ -102,14 +149,14 @@ namespace XGEF
 
 		public void PairSystems<TCore, TMod>(TMod modSystem)
 			where TCore : CoreSystem
-			where TMod  : ModSystem
+			where TMod : ModSystem
 		{
 			GetSystem<TCore>().Pair(modSystem);
 		}
 
 		public void RegisterSystems(params ISplitSystem[] systems)
 		{
-			RegisterSystems(systems.ToList());
+			RegisterSystems(systems);
 		}
 
 		public void RegisterSystems(IEnumerable<ISplitSystem> systems)
@@ -147,7 +194,9 @@ namespace XGEF
 			if (s is ILogger logger)
 			{
 				Loggers.Add(logger);
-				logger.SetLogLevel(LogOutput);
+				logger.LogActive = LogActive;
+				logger.LogOutputLevel = LogOutputLevel;
+				logger.LogDebugInfo = LogDebugInfo;
 			}
 
 		}
@@ -228,188 +277,82 @@ namespace XGEF
 			}
 		}
 
+		#region Log Pass-throughs
+
+
+		public void Debug(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+		{
+			if (LogActive)
+			{
+				if (Loggers.Count == 0)
+				{
+					Console.WriteLine(message);
+				}
+				else
+				{
+					foreach (var logger in Loggers)
+					{
+						logger.Debug(message, memberName, sourceFilePath, sourceLineNumber);
+					}
+				}
+			}
+		}
+
+		public void Info(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+		{
+			if (LogActive)
+			{
+				if (Loggers.Count == 0)
+				{
+					Console.WriteLine(message);
+				}
+				else
+				{
+					foreach (var logger in Loggers)
+					{
+						logger.Info(message, memberName, sourceFilePath, sourceLineNumber);
+					}
+				}
+			}
+		}
+
+		public void Warn(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+		{
+			if (LogActive)
+			{
+				if (Loggers.Count == 0)
+				{
+					Console.WriteLine(message);
+				}
+				else
+				{
+					foreach (var logger in Loggers)
+					{
+						logger.Warn(message, memberName, sourceFilePath, sourceLineNumber);
+					}
+				}
+			}
+		}
+
+		public void Error(string message, Exception ex = null, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+		{
+			if (LogActive)
+			{
+				if (Loggers.Count == 0)
+				{
+					Console.WriteLine(message);
+				}
+				else
+				{
+					foreach (var logger in Loggers)
+					{
+						logger.Error(message, ex, memberName, sourceFilePath, sourceLineNumber);
+					}
+				}
+			}
+		}
+
+
+		#endregion
 	}
-
-	#region Log Pass-throughs
-
-	public partial class SystemManager : ILogger
-	{
-		public string Name { get { return "SystemManager"; } }
-
-		public LogLevel LogOutput { get; protected set; }
-		public void SetLogLevel(LogLevel level)
-		{
-			LogOutput = level;
-			foreach (var logger in Loggers)
-			{
-				logger.SetLogLevel(level);
-			}
-		}
-
-		public void Debug(string message, int level = 0)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(message);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Debug(message, level);
-				}
-			}
-		}
-
-		public void Debug(int level, params object[] messages)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(messages);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Debug(messages);
-				}
-			}
-		}
-
-		public void Debug(params object[] messages)
-		{
-			Debug(0, messages);
-		}
-
-		public void Info(string message, int level = 0)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(message);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Info(message, level);
-				}
-			}
-		}
-
-		public void Info(int level, params object[] messages)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(messages);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Info(messages);
-				}
-			}
-		}
-
-		public void Info(params object[] messages)
-		{
-			Info(0, messages);
-		}
-
-		public void Warn(string message, int level = 0)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(message);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Warn(message, level);
-				}
-			}
-		}
-
-		public void Warn(int level, params object[] messages)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(messages);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Warn(messages);
-				}
-			}
-		}
-
-		public void Warn(params object[] messages)
-		{
-			Warn(0, messages);
-		}
-
-		public void Error(string message, int level = 0)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(message);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Error(message, level);
-				}
-			}
-		}
-
-		public void Error(int level, params object[] messages)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(messages);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Error(messages);
-				}
-			}
-		}
-
-		public void Error(params object[] messages)
-		{
-			Error(0, messages);
-		}
-
-		public void Error(string message, Exception ex, int level = 0)
-		{
-			if (LogActive)
-			{
-				if (Loggers.Count == 0)
-				{
-					Console.WriteLine(message);
-				}
-				else
-				{
-					foreach (var logger in Loggers)
-						logger.Error(message, ex, level);
-				}
-			}
-		}
-	}
-
-	#endregion
 }

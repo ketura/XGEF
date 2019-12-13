@@ -1,7 +1,8 @@
-﻿///////////////////////////////////////////////////////////////////////////////////////
+﻿
+///////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
 ////                                                                               ////
-////    Copyright 2019-2020 Christian 'ketura' McCarty                             ////
+////    Copyright 2017-2018 Christian 'ketura' McCarty                             ////
 ////                                                                               ////
 ////    Licensed under the Apache License, Version 2.0 (the "License");            ////
 ////    you may not use this file except in compliance with the License.           ////
@@ -19,51 +20,24 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using XGEF.Core.Networking;
 
-namespace XGEF
+namespace XGEF.Core.Events
 {
-	public interface IModSystem : ISplitSystem
+	public class MessageEventArgs : XEventArgs
 	{
+		public uint MessageID { get; set; }
+		public string Message { get; set; }
 
-	}
-
-	//One-half of a moddable system, this is the half that will be packed into the game files as regular code and compiled as needed.
-	public abstract class ModSystem : SplitSystem
-	{
-		public CoreSystem CoreSystemBase { get; protected set; }
-		public virtual Type CoreSystemType { get; protected set; }
-
-		public virtual void SetCoreSystem(CoreSystem system)
+		public MessageEventArgs() : this(null) { }
+		public MessageEventArgs(string message)
 		{
-			CoreSystemBase = system;
-			CoreSystemType = system.GetType();
-			Manager = system.Manager;
-		}
-
-		public override void Init()
-		{
-			if (CoreSystemBase == null)
-				throw new InvalidOperationException("Cannot initialize ModSystem!  Its compiled half was never provided!");
-		}
-
-		public void Pair(CoreSystem system)
-		{
-			SetCoreSystem(system);
-			system.SetModdedSystem(this);
-		}
-
-	}
-
-
-	public abstract class ModSystem<T> : ModSystem
-		where T : CoreSystem
-	{
-		public T CoreSystem { get { return CoreSystemBase as T; } }
-		public override Type CoreSystemType { get { return typeof(T); } }
-
-		public virtual void SetCoreSystem(T system)
-		{
-			SetCoreSystem(system as CoreSystem);
+			EventName = "MessageEvent";
+			Message = message;
 		}
 	}
 }

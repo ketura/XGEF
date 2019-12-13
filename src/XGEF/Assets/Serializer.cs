@@ -56,25 +56,20 @@ namespace XGEF
 
 	public class JsonSerializer : Serializer
 	{
-		public static readonly JsonSerializerSettings DefaultSettings;
-		public static readonly JsonSerializerSettings TemplateSettings;
-
-		static JsonSerializer()
+		public static readonly JsonSerializerSettings DefaultSettings = new JsonSerializerSettings()
 		{
-			DefaultSettings = new JsonSerializerSettings()
-			{
-				NullValueHandling = NullValueHandling.Ignore,
-				DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-				Formatting = Formatting.Indented,
-			};
+			NullValueHandling = NullValueHandling.Ignore,
+			DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
+			Formatting = Formatting.Indented,
+		};
 
-			TemplateSettings = new JsonSerializerSettings()
-			{
-				NullValueHandling = NullValueHandling.Include,
-				DefaultValueHandling = DefaultValueHandling.Populate,
-				Formatting = Formatting.Indented,
-			};
-		}
+		public static readonly JsonSerializerSettings TemplateSettings = new JsonSerializerSettings()
+		{
+			NullValueHandling = NullValueHandling.Include,
+			DefaultValueHandling = DefaultValueHandling.Populate,
+			Formatting = Formatting.Indented,
+		};
+
 		
 		public static string SerializeJson(object obj, JsonSerializerSettings settings=null)
 		{
@@ -87,14 +82,14 @@ namespace XGEF
 		{
 			if (settings == null)
 				settings = DefaultSettings;
-			return JsonConvert.DeserializeObject(json, DefaultSettings);
+			return JsonConvert.DeserializeObject(json, settings);
 		}
 
 		public static T DeserializeJson<T>(string json, JsonSerializerSettings settings = null)
 		{
 			if (settings == null)
 				settings = DefaultSettings;
-			return JsonConvert.DeserializeObject<T>(json, DefaultSettings);
+			return JsonConvert.DeserializeObject<T>(json, settings);
 		}
 
 		//--

@@ -551,7 +551,7 @@ namespace XGEF
 			Manager.Info("Searching for Systems that require a modded pair...");
 			foreach (var system in Manager.Systems.Values)
 			{
-				CoreSystem ms = system as CoreSystem;
+				var ms = system as CoreSystem;
 				if (ms == null || !ms.AutomaticallyPair || ms.ModSystemBase != null)
 					continue;
 

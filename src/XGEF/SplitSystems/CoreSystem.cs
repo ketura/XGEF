@@ -44,15 +44,12 @@ namespace XGEF
 			ModdedSystemType = moddedSystem.GetType();
 		}
 
-		public virtual void SetModdedSystem(object moddedSystem)
-		{
-			SetModdedSystem(moddedSystem as ModSystem);
-		}
-
 		public override void PreInit()
 		{
 			if (ModSystemBase != null)
+			{
 				ModSystemBase.PreInit();
+			}
 		}
 
 		public override void Init()
@@ -80,7 +77,9 @@ namespace XGEF
 		public override void PostInit()
 		{
 			if (ModSystemBase != null)
+			{
 				ModSystemBase.PostInit();
+			}
 		}
 
 		public void Pair(ModSystem system)
@@ -115,29 +114,17 @@ namespace XGEF
 	}
 
 
-	public abstract class CoreSystem<T> : CoreSystem
-		where T : ModSystem
+	public abstract class CoreSystem<TModSystem> : CoreSystem
+		where TModSystem : ModSystem
 	{
-		public override Type ModdedSystemType { get { return typeof(T); } }
-		public T ModSystem { get { return ModSystemBase as T; } }
+		public override Type ModdedSystemType => typeof(TModSystem); 
+		public TModSystem ModSystem => ModSystemBase as TModSystem; 
 
-		public CoreSystem() : base() { }
+		protected CoreSystem() : base() { }
 
-		public virtual void SetModdedSystem(T moddedSystem)
+		public virtual void SetModdedSystem(TModSystem moddedSystem)
 		{
 			ModSystemBase = moddedSystem;
 		}
 	}
-
-		//GeneratesEvent
-		//AppendEvent
-		//PrependEvent
-		//OverrideClass
-		//OverrideFunction
-		//AppendFunction
-		//PrependFunction
-		//DeleteFunction
-
-		//Don't Serialize attribute
-		//naked code with no class wrapped in a class named after the file path?
-	}
+}

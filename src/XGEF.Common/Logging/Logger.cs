@@ -25,39 +25,44 @@ using System.Reflection;
 using log4net;
 using log4net.Appender;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace XGEF.Common.Logging
 {
+	[Flags]
 	public enum LogLevel
 	{
-		Debug,
-		Info,
-		Warn,
-		Error
+		Debug = 0b00000001,
+		Info =  0b00000010,
+		Warn =  0b00000100,
+		Error = 0b00001000
 	}
 
 	public interface ILogger
 	{
 		bool LogActive { get; set; }
-		LogLevel LogOutput { get; }
-		void SetLogLevel(LogLevel level);
+		bool LogDebugInfo { get; set; }
+		LogLevel LogOutputLevel { get; set; }
 
-		string Name { get; }
+		void Debug(string message,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0);
 
-		void Debug(string message, int level = 0);
-		void Debug(params object[] messages);
-		void Debug(int level, params object[] messages);
-		void Info(string message, int level = 0);
-		void Info(params object[] messages);
-		void Info(int level, params object[] messages);
-		void Warn(string message, int level = 0);
-		void Warn(params object[] messages);
-		void Warn(int level, params object[] messages);
-		void Error(string message, int level = 0);
-		void Error(string message, Exception ex, int level = 0);
-		void Error(params object[] messages);
-		void Error(int level, params object[] messages);
+		void Info(string message,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0);
 
+		void Warn(string message,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0);
+		
+		void Error(string message, Exception ex = null,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0);
 	}
 
 	public class Logger : ILogger
@@ -69,58 +74,17 @@ namespace XGEF.Common.Logging
 			Instance = new Logger();
 		}
 
+		protected Logger() { }
 
-		public void SetLogLevel(LogLevel level)
-		{
-			Flush();
-
-			switch (level)
-			{
-				case LogLevel.Debug:
-					SetMassLogLevel(true, true, true, true);
-					break;
-				case LogLevel.Info:
-					SetMassLogLevel(true, true, true, false);
-					break;
-				case LogLevel.Warn:
-					SetMassLogLevel(true, true, false, false);
-					break;
-				case LogLevel.Error:
-					SetMassLogLevel(true, false, false, false);
-					break;
-			}
-
-			LogOutput = level;
-		}
-
-		protected void SetMassLogLevel(bool error, bool warn, bool info, bool debug)
-		{
-			EnabledLevels[LogLevel.Error] = error;
-			EnabledLevels[LogLevel.Warn] = warn;
-			EnabledLevels[LogLevel.Info] = info;
-			EnabledLevels[LogLevel.Debug] = debug;
-		}
-
-		public Dictionary<LogLevel, bool> EnabledLevels { get; protected set; } = new Dictionary<LogLevel, bool>();
-		public LogLevel LogOutput { get; protected set; }
 
 		public bool LogActive { get; set; } = true;
+		public bool LogDebugInfo { get; set; } = false;
+		public LogLevel LogOutputLevel { get; set; } = LogLevel.Debug;
 
-		public string Name { get; protected set; } = "Logger";
+		protected static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-		//Note that this will sssllooooooww every log call down.
-		public bool IncludeCaller { get; set; } = true;
 
-		public bool ForceFlushOnProcess { get; set; } = true;
-
-		protected static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-		public Logger()
-		{
-			SetMassLogLevel(true, true, true, true);
-		}
-
-		public void Flush()
+		public static void Flush()
 		{
 			foreach (IAppender appender in LogManager.GetRepository("XGEFLogger").GetAppenders())
 			{
@@ -131,133 +95,69 @@ namespace XGEF.Common.Logging
 			}
 		}
 
-		protected object[] PrependMessage(object[] messages, object message)
+		protected void Log(LogLevel level, string message, string memberName, string sourceFilePath, int sourceLineNumber)
 		{
-			object[] newMessages = new object[messages.Length + 1];
-			newMessages[0] = message;
-			Array.Copy(messages, 0, newMessages, 1, messages.Length);
-			return newMessages;
-		}
+			if (!LogActive || !LogOutputLevel.HasFlag(level))
+				return;
 
-		protected string ConcatMessages(object[] messages)
-		{
-			string combined = "";
-			foreach (object obj in messages)
+			if (LogDebugInfo)
 			{
-				combined += obj.ToString();
+				message = $"{message}\n\n[{memberName}:{sourceLineNumber}@'{sourceFilePath}']";
 			}
 
-			return combined;
-		}
-
-		protected string GetCallerInfo(string message = "", int level = 0)
-		{
-			var caller = new StackTrace().GetFrame(3 + level).GetMethod();
-			return $"[{caller.DeclaringType.FullName}->{caller.Name}]: {message}";
-		}
-
-		#region Log API pass-throughs
-
-		public void Debug(string message, int level = 0)
-		{
-			if (LogActive && EnabledLevels[LogLevel.Debug])
+			switch (level.LowestFlagBit<LogLevel>())
 			{
-				if (IncludeCaller)
-				{
-					message = GetCallerInfo(message, level);
-				}
 
-				Log.Debug(message);
+				case LogLevel.Debug:
+					_log.Debug(message);
+					break;
+				case LogLevel.Info:
+					_log.Info(message);
+					break;
+				case LogLevel.Warn:
+					_log.Warn(message);
+					break;
+				default:
+				case LogLevel.Error:
+					_log.Error(message);
+					break;
 			}
 		}
 
-		public void Debug(int level, params object[] messages)
+		public void Debug(string message,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0)
 		{
-			Debug(ConcatMessages(messages), level);
+			Log(LogLevel.Debug, message, memberName, sourceFilePath, sourceLineNumber);
 		}
 
-		public void Debug(params object[] messages)
+		public void Info(string message,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0)
 		{
-			Debug(0, messages);
+			Log(LogLevel.Info, message, memberName, sourceFilePath, sourceLineNumber);
 		}
 
-		public void Info(string message, int level = 0)
+		public void Warn(string message,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0)
 		{
-			if (LogActive && EnabledLevels[LogLevel.Info])
+			Log(LogLevel.Warn, message, memberName, sourceFilePath, sourceLineNumber);
+		}
+
+		public void Error(string message, Exception ex = null,
+			[CallerMemberName] string memberName = "",
+			[CallerFilePath] string sourceFilePath = "",
+			[CallerLineNumber] int sourceLineNumber = 0)
+		{
+			if (ex != null)
 			{
-				if (IncludeCaller)
-				{
-					message = GetCallerInfo(message, level);
-				}
-
-				Log.Info(message);
+				message = $"{message}\n\nException Details:\n\n{ex.ToString()}";
 			}
-		}
-
-		public void Info(int level, params object[] messages)
-		{
-			Info(ConcatMessages(messages), level);
-		}
-
-		public void Info(params object[] messages)
-		{
-			Info(0, messages);
-		}
-
-		public void Warn(string message, int level = 0)
-		{
-			if (LogActive && EnabledLevels[LogLevel.Warn])
-			{
-				if (IncludeCaller)
-				{
-					message = GetCallerInfo(message);
-				}
-
-				Log.Warn(message);
-			}
-		}
-
-		public void Warn(int level, params object[] messages)
-		{
-			Warn(ConcatMessages(messages), level);
-		}
-
-		public void Warn(params object[] messages)
-		{
-			Warn(0, messages);
-		}
-
-		public void Error(string message, int level = 0)
-		{
-			Error(message, null, level);
-		}
-
-		public void Error(string message, Exception ex = null, int level = 0)
-		{
-			if (LogActive && EnabledLevels[LogLevel.Error])
-			{
-				if (IncludeCaller)
-				{
-					message = GetCallerInfo(message);
-				}
-
-				if (ex != null)
-					Log.Error(message, ex);
-				else
-					Log.Error(message);
-			}
-		}
-
-		public void Error(int level, params object[] messages)
-		{
-			Error(ConcatMessages(messages), null, level);
-		}
-
-		public void Error(params object[] messages)
-		{
-			Error(0, messages);
+			Log(LogLevel.Error, message, memberName, sourceFilePath, sourceLineNumber);
 		}
 	}
-
-	#endregion
 }

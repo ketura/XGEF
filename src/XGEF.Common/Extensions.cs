@@ -91,6 +91,7 @@ namespace XGEF
 		}
 
 		public static string GetDescription<T>(this T value)
+			where T : Enum
 		{
 			FieldInfo fi = value.GetType().GetField(value.ToString());
 
@@ -111,6 +112,7 @@ namespace XGEF
 		}
 
 		public static IEnumerable<string> GetDescriptions<T>(this T value)
+			where T : Enum
 		{
 			List<string> desc = new List<string>();
 			foreach (T t in value.GetValues())
@@ -121,21 +123,44 @@ namespace XGEF
 		}
 
 		public static IEnumerable<T> GetValues<T>(this T value)
+			where T : Enum
 		{
 			return Enum.GetValues(typeof(T)).Cast<T>();
 		}
 
 		public static IEnumerable<T> GetValues<T>(this Enum value)
+			where T : Enum
 		{
 			return Enum.GetValues(typeof(T)).Cast<T>();
 		}
 
 		public static T Parse<T>(this T me, string str)
+			where T : Enum
 		{
 			if (string.IsNullOrEmpty(str))
 				return me.GetValues().First();
 
 			return (T)Enum.Parse(typeof(T), str);
+		}
+
+		public static T LowestFlagBit<T>(this Enum flags)
+			where T : Enum
+		{
+			int x = (int)Convert.ChangeType(flags, typeof(int));
+			return (T)(object)(~(x & x - 1) & x);
+		}
+
+		public static T HighestFlagBit<T>(this Enum flags)
+			where T : Enum
+		{
+			int x = (int)Convert.ChangeType(flags, typeof(int));
+			int last = x;
+			while (x != 0)
+			{
+				last = x;
+				x &= x - 1;
+			}
+			return (T)(object)last;
 		}
 	}
 }

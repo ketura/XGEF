@@ -31,7 +31,7 @@ namespace XGEF
 
 		public bool Initialized { get; protected set; }
 
-		public Utility()
+		protected Utility()
 		{
 			Name = this.GetType().Name;
 		}
@@ -56,16 +56,4 @@ namespace XGEF
 		public virtual void PreProcess() { }
 		public virtual void PostProcess() { }
 	}
-
-	//GeneratesEvent
-	//AppendEvent
-	//PrependEvent
-	//OverrideClass
-	//OverrideFunction
-	//AppendFunction
-	//PrependFunction
-	//DeleteFunction
-
-	//Don't Serialize attribute
-	//naked code with no class wrapped in a class named after the file path?
 }

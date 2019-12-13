@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XGEF.Common\XGEF.Common.csproj" />
+    <ProjectReference Include="..\XGEF\XGEF.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="Netcode.IO.NET">
+			<HintPath>..\lib\Netcode.IO.NET.dll</HintPath>
+		</Reference>
+		<Reference Include="ReliableNetcode">
+			<HintPath>..\lib\ReliableNetcode.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+
+</Project>
